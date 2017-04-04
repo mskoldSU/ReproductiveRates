@@ -16,8 +16,6 @@ bibliography: MS Bounded rmax.bib
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,include = FALSE}
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE, eval = TRUE)
-library(cowplot)
-source("load.R")
 ```
 
 *Abstract*: Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. We conclude that our model can provide more realistic predictions and greater robustness against outlying environmental covariates than traditional log-linear models. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise, a key challenge in state-space modelling. 
