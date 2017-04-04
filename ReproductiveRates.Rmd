@@ -1,0 +1,203 @@
+---
+title: "Bounding reproductive rates in state-space models for animal population dynamics"
+author: Martin Sköld^[Department of Mathematics, Stockholm university] and Jonas Knape^[Department of Ecology, Swedish University of Agricultural Sciences]
+date: ''
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+- \usepackage{setspace}
+- \doublespacing
+- \usepackage{lineno}
+- \linenumbers
+csl: mee.csl
+bibliography: MS Bounded rmax.bib
+---
+```{r,echo=FALSE, message=FALSE, warning=FALSE,include = FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE, eval = TRUE)
+library(cowplot)
+source("load.R")
+```
+
+*Abstract*: Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. We conclude that our model can provide more realistic predictions and greater robustness against outlying environmental covariates than traditional log-linear models. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise, a key challenge in state-space modelling. 
+
+\newpage
+
+## Introduction
+
+Analyses of population time series forms one of the most fundamental tools in the study of population dynamics and in population viability analyses. Time series analyses are used in many ecological studies with widely varying aims. From estimating population densities [@moore_bayesian_2011], density dependence [@dennis_estimating_2006], effects of environmental variables to extinction risks and population viability [@holmes_statistical_2007].
+
+A common approach to modelling population time series data is to start with a discrete time deterministic population model, such as an exponential growth model, a Ricker or a Gompertz model [@brannstrom_stochastic_2006]. To account for variation, the deterministic model is converted to a stochastic model by incorporating noise often called process error [@dennis_estimation_1991], representing environmental or demographic variation [@engen_demographic_1998]. Environmental process error is, with a few exceptions, incorporated by adding a Gaussian error term to the exponential growth rate yielding a log-normal distribution for the process error at the original scale [@dennis_estimation_1991; @de_valpine_fitting_2002; @clark_population_2004].
+Demographic process error is typically incorporated either by adding a Gaussian error term to the log annual growth rate, scaled by the square root of population size [@saether_climate_2006], or using a Poisson or binomial distribution for the number of births and survival events. In addition to modelling stochastic process variation, environmental variation is also modelled by introducing environmental covariates such as rain, climate or other factors thought to affect population growth rates [@stenseth_ecological_2002; @knape_effects_2011]. This is typically done in the same way as for process error by adding the covariates to the exponential growth rate, although the effects of environmental covariates on other parameters of population models have also sometimes been considered [@stenseth_ecological_2002; @mansson_time_2007].
+
+A consequence of assuming a log-normal distribution for the process error and adding covariates at the scale of log-transformed annual growth rates is that some of the annual growth rates suggested by a fitted population model can be unrealistically large, even when the estimated value of the stochastic growth rate is realistic. 
+The log-normal distribution is right skewed and heavy-tailed, implying that occasional large deviations from the median growth rate is likely to occur in the annual realized growth rates. This property of the log-normal distribution becomes more pronounced with increased variance in the process error.
+
+Estimating the magnitude of process error from time series data is non-trivial since measurement errors typically also are present. Accounting for measurement errors is vital for many types of inference from time-series data such as estimating density dependence and population viability [@freckleton_census_2006; @holmes_statistical_2007]. State-space models incorporate both sources of errors and are often used to separate them,  but in practice it is often difficult to achieve a good separation [@dennis_estimating_2006; @knape_estimability_2008].
+
+Here, we suggest a simple modification of the Gompertz state-space model to improve the separation of measurement and process error in state-space models for population time series by making use of biological information about maximum growth rates. For some types of organisms, large mammals in particular, there is often strong biological information about the how much a population can grow during a limited period of time, but it is rarely used in analyses of data. Some previous studies have explored incorporating prior knowledge in the stochastic growth rate parameter of population models, i.e. the expected mean growth rate on the log-scale when the population is small [@delean_ecologically_2012; @lebreton_detecting_2013].
+Our approach is instead based on bounding the realized rather than the stochastic growth rate using biological knowledge.
+It's effects are demonstrated in applications to data on ungulate populations in the Kruger national park.
+
+## Population models
+
+A state-space model has two components. A model for the hidden state, in our context an index of the unobserved population abundance, and a model for the observation process. Denoting abundance at time $t$ by $N_t$, a popular model in discrete time is the stochastic Gompertz model. Here 
+
+$$
+N_t=N_{t-1}\exp(\beta v_t+\epsilon_t),\quad t=1,\ldots,T,\quad (1)
+$$
+
+where the row-vector $v_t=(1,\log(N_{t-1}),z_t)'$ contains a possibly vector-valued process $z_t$ of environmental variables, a vector of parameters $\beta=(\beta_0,\ldots,\beta_{d})$ and Gaussian noise $\epsilon_t$ with zero mean and variance $\sigma^2$. On the log-scale, $X_t=\log N_t$ then follows an autoregressive model with covariates (ARMAX).
+
+Since we can rarely monitor $N_t$ directly, it is commonly assumed that the sampling method results in an index $Y_t$, often the logarithm of animal counts, related to log-abundance as $Y_t=X_t+e_t$ through a Gaussian sampling error $e_t$ with mean zero and variance $s^2$. 
+
+The log-linear form of the population process in (1) makes it convenient to include environmental covariates like $z_t$, but also implies the unbounded increase or decline of log-abundance. Large mammals often have a sharp upper limit in their reproductive rates; if fertile females in a closed population produce at most one juvenile per season, $\lambda_t=N_{t+1}/N_{t}$ is clearly bounded from above by $\lambda_{max}=1+p$, where $p$ is the population proportion of fertile females. Higher rates could be possible if we allow immigration, in this study we assume effects of migration to be negligible though. 
+
+Upper limits are difficult to implement for a model like (1), and ignoring them may lead to unrealistic predictions of $N_t$. In order to investigate the effect of ignoring constraints, we construct an alternative model where the logit, rather than the log, links the rate to its linear form by replacing the exponential function in (1) by the logistic function.
+
+The logistic function, $\text{logistic}(x)=L/(\exp(-b(x-a))+1)$, is the sigmoid function decreasing to zero as $x$ approaches $-\infty$ and increasing to  $L$ as $x$ approaches $\infty$. Here, the parameter $b>0$ controls the steepness of the curve and $a$ the location of its midpoint. Its use in this paper resembles the way it is used in statistics, in particular _logistic regression_, as a mean of transforming the effect of a linear combination of covariates to a bounded interval. This should not be confused with its rather different and traditional appearance in population ecology through Verhulst's _logistic model of population growth_. In Verhulst's model, it forms a bound on a population's _size_ through carrying capacity $L=K$. Our aim is instead to implement a bound $L=\lambda_{max}$ on the population's _rate of increase_. In agreement with (1) we do so by simply replacing the exponential with the logistic, 
+$$
+N_t=N_{t-1}\text{logistic}(\beta v_t+\epsilon_t),\quad t=1,\ldots,T,\quad (2)
+$$
+where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. In order for the parameters $\beta$ and $\sigma^2$  to be comparable with those of the exponential model, we set $L=\lambda_{max}$ and fix location and scale of the logistic function at $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$. This choice ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, see Figure 1 for the case $\lambda_{max}=1.5$. It also ensures that the carrying capacities of the two models are the same.
+
+
+*Figure 1 here*
+
+
+
+
+It is clear from Figure 1 that within a range of a 15% rise or decline, which should cover all but the most extreme fluctuations for most populations, the rate-functions are very similar when $\lambda_{max} = 1.5$.
+As $\lambda_{max}$ increases, the logistic function parametrised as above will approach the exponential function so that the Gompertz model is recovered in the limit of model (2) when the remaining parameters are held fixed.
+
+In the following, we will refer to model (1) as the _exponential_ rate model and model (2), with the logistic function parametrised as $\text{logistic}(x)=\lambda_{max}/(1 + (\lambda_{max}-1)\exp(-\lambda_{max}x/(\lambda_{max}-1)))$, as the _logistic_ rate model.
+
+
+
+## Application
+
+Our approach is illustrated using data on ungulates in Kruger National Park, previously analysed using exponential rate models by  @ogutu_enso_2003 and @mansson_time_2007. Data consists of animal counts in four regions of the park (labelled south, central, north and farnorth) from 1977 to 1997, details of the study can be found in @redfern_biases_2002 and @ogutu_enso_2003.
+
+We have analyzed 7 of the species covered by the census; waterbuck (*Kobus ellipsiprymnus*), giraffe (*Giraffa camelopardalis*), Burchell’s zebra (*Equus burchelli*), greater kudu (*Tragelaphus strepsiceros*), blue wildebeest (*Connochaetes taurinus*), impala (*Aepyceros melampus*) and sable antelope (*Hippotragus niger*). In the paper we report results for the giraffe and the waterbuck as examples of species with high and low detection probabilities respectively. @redfern_biases_2002 reports a detection probability of ~50% for the waterbuck. Results for the other species are found in the supplementary material. 
+Both @ogutu_enso_2003 and @mansson_time_2007 find that dry season rainfall is the main driving force of environmental process variation, hence we include this as our environmental variable $z_t$ in models (1) and (2).
+
+Regional census totals are shown in Figure 2 together with dry season rainfall. The waterbuck in particular show a decreasing trend in response to the lower precipitation from 1988 and onwards. 
+
+
+*Figure 2 here*
+
+
+
+
+### Statistical model
+
+An advantage of modelling the rate of increase using an exponential function is that $X_t=\log(N_t)$ follows a Gaussian auto-regressive process which allows the use of standard tools, e.g.\ the Kalman filter, for computing the likelihood. We choose instead to follow a Bayesian approach, fitting the models using Markov chain Monte Carlo (MCMC) methods implemented in JAGS [@plummer_jags:_2003] run through the package rjags [@plummer_rjags:_2016] within the R computing environment [@r_development_core_team_r:_2016].  The Bayesian approach has the advantage of, given a suitable choice of prior parameter distributions, providing a unified way of presenting probabilistic measures of uncertainty through posterior distributions. This serves our purpose well, since our main aim is to illustrate how the use of an explicit upper bound on rates of increase can influence uncertainty about other parts of the process. 
+
+We model populations  at the regional level, where  different species develop independently of each other conditionally on the environmental variable. For a particular species, we further assume independence across regions conditionally on the values of species specific parameters $(\beta,\sigma,s)$.  In summary, if we denote the log-count of a given species in region $i$ at time $t$ by $y_{it}$, we assume that
+
+$$
+y_{it}=\log(N_{it})+e_{it},
+$$
+where $e_{it}\sim N(0,s^2)$ independently over indices and
+$$
+N_{it}=\lambda_{it}N_{i(t-1)}.
+$$
+Further,
+$$
+\lambda_{it}=\begin{cases}
+    \exp(\beta v_{it}+\epsilon_{it})&\text{ for the Gomperz or exponential rate model}\\
+    \text{logistic}(\beta v_{it}+\epsilon_{it})&\text{ for the proposed logistic rate model,}
+\end{cases}
+$$
+where $v_{it}=(1,\log(N_{i(t-1)}),z_{it})^T$ with $z_{it}$ denoting dry season rainfall in region $i$ year $t$, $\epsilon_{it}\sim N(0,\sigma^2)$ independently over indices and finally $\text{logistic}(x)=\lambda_{max}/(\exp(-\lambda_{max}x/(\lambda_{max}-1))/(\lambda_{max}-1)+1)$ given a known upper bound $\lambda_{max}$ on the reproductive rate of the species. Parameters are given vague prior distributions, see Supplementary material. As a further simplification, we start each population process at it's first observed value, $N_{it_{i0}}=y_{it_{i0}}$.
+
+Since we are mainly interested in comparing the exponential and logistic rate models, we have kept the remaining model details as simple as possible while still including a continuous covariate represented by dry season rainfall. @mansson_time_2007 consider the same model structure as our exponential rate model, but with a wider range of covariates and higher order time lags of density dependence. Also @ogutu_enso_2003 try a wider range of covariates, but they only model park totals and their model do not include a measurement error.
+
+### Bounds on reproductive rates
+
+A true upper bound on reproduction depend, among other factors, on proportion of reproductive females, litter sizes, gestation periods and juvenile survival. With the exeption of the giraffe, which has a gestation period of 15 months, reproduction for the species under study is mainly  seasonal with only rare occasions of twins. We base our maximal reproductive rates on summary population structure statistics in @owen-smith_comparative_2005. They report average number of juveniles ($p_j$), yearlings ($p_y$) and adult males ($p_m$) per adult female across the full census. This is used to estimate proportion of adult females as $p=1/(1+p_j+p_y+p_m)$, and set $\lambda_{max}=1+p$. For the giraffe we assume the number of subadults to equal three times the number of two-year olds, since data is only available on the latter. Further, the maximal rate is corrected for the giraffe's long gestation period as $\lambda_{max}=1+p\times 12/15$. Since for all species under study estimated upper bounds range between 1.4 and 1.5, we finally decide to use a common value of $\lambda_{max}=1.5$.
+
+
+## Results
+
+Posterior densities for all species and parameters are available in the supplementary material, we here focus on our key findings.
+
+### Separating process noise and observation error
+
+A key challenge in state-space modelling lies in separating process noise and observation error. As noted by e.g. Dennis et.al. (2006), the likelihood function often have local maxima along $\sigma = 0$ and $s = 0$, and profile likelihoods for $(\sigma, s)$ tend to be ridge-shaped due to the difficulties in separating the two contributions to variation. For the giraffe, this poses no problem and both approaches give similar posterior densities for $(\sigma, s)$, clearly bounded away from zero (see supplemental material). For the waterbuck, on the other hand, the log-normal model shows a ridge-shaped density and fails to confirm that observation error exist (Figure 3). This is also observed for the Kudu, Blue Wildebeest and to lesser extend the Zebra (see Suppelemntary material).
+
+
+*Figure 3 here*
+
+
+### Adapting to rapid changes in data
+
+In 1984, 301 waterbuck were counted in the Far North region. The next year almost twice as many, 599, were counted. This is far above the maximal reproduction, and given that also the other districts increase over the period much of the increase could be attributed to sampling error rather than migration. As noted by @redfern_biases_2002, detection probabilities can differ greatly between years due to variations in vegetation cover.   Figure 4a shows the posterior distribution for the total population index under the two models, here the logisitic rate model predict a smoother curve while the exponential rate model seems to overfit data resulting in an unrealistic growth rate in 1984-1985. For the giraffe, the results from the two models are difficult to distinguish (Figure 4b). In Figure 5 we have plotted the corresponding posterior densities for the rates of increase of the waterbuck population from 1984 to 1985 and 1985 to 1986, here the former shows a substantial posterior probability mass on values above 1.5 for the exponential rate model.
+
+*Figure 4 here*
+
+*Figure 5 here*
+
+
+
+### Response to rainfall
+
+The log-linear form of the exponential model makes it sensitive to extreme values in covariates. Taking rainfall as an example, this will often be beneficial for population growth up to a point of saturation, after which additional rain has little effect.
+
+Figure 6 shows the posterior distribution of the rate function $\lambda$ as a function of dry season rainfall. In the data used for fitting the model, annual precipitation does not exceed 200 mm. In 1973 however, 279 mm was recorded in the South district. This illustrates the dangers of extrapolation in the exponential rate model, leading to a 80% posterior predictive probability of exceeding the maximal rate 1.5.
+
+*Figure 6 here*
+
+
+### Prediction
+
+Predicting future population sizes is one of the main applications of time-series models in ecology. Failure to take upper bounds on reproduction into account may lead to overly optimistic predictions. We illustrate this issue for the waterbuck population using historical rainfall data for a low- and a high-precipitation scenario. In Figure 7 (a) we have assumed rainfall following the last year of the census to be identical to what was observed in 1981-1987, which corresponds to high precipitation. Not surprisingly, the exponential rate model gives much wider prediction intervalls and puts larger posterior probability masses on high population increases. For the low-precipitation scenario corresponding to historical data from 1988-1994, the difference is smaller in Figure 7 (b).
+
+
+* Figure 7 here*
+
+# Discussion
+
+Standard stochastic population models used to analyze time series data on abundance typically do not put any restriction on realized growth rates, allowing estimated annual growth rates to become unrealistically large. We have modified a Gompertz state-space model so that annual growth rates are forced to be smaller than a maximum growth rate determined from biological knowledge [@popescu_assessing_2016]. By excluding biologically unrealistic growth rates the model can aid in the separation of process variance and observation variance, one of the key challenges in the application of state space models to time series data [@dennis_estimating_2006;  @knape_estimability_2008], and reduce variance in projections of future population sizes, as used in e.g. population viability analyses. Intuitively, we gain information about the magnitude of observation errors from the positive changes in the index that are larger than would be possible with growth rate equal to $\lambda_{max}$, which helps in improving predictions and in estimation of other parameters.
+
+The model will be most useful for organisms where $\lambda_{max}$ is not far larger than 1. That includes mainly relatively slow life histories and larger organisms [@savage_effects_2004]. It is not uncommon for point estimates of the process error standard deviation at the log-scale to be around 0.2 or larger, and confidence or credible intervals extending well beyond that. Under a log-normal distribution a process error standard deviation of 0.2 at the log scale yields a realized per capita growth 20% larger than the deterministic growth rate in around 18% of the time steps. At a process standard deviation of 0.3 the realized per capita growth rate would be 30% larger than the deterministic growth rate in on average 21% of the time steps. Thus, for organisms with small $\lambda_{max}$, there can be a high risk of growth rates estimated under an exponential rate model to become unrealistic, particularly if they occur at population sizes below the carrying capacity. For organisms where the maximum annual growth is far larger than 1 (say $\lambda_{max}$ > 2), such as in most smaller organisms, there will typically be little difference between our model and an exponential rate model. Our model can therefore be seen as a generalization of the Gompertz state-space model that is useful for slowly growing organisms.
+
+For simplicity we have used here a hard limit for $\lambda_{max}$. However, maximal growth rates can be difficult to estimate and it may be warranted to include uncertainty in $\lambda_{max}$ [@meyer_estimating_1986]. Since our model is cast in a Bayesian framework it is conceptually straightforward to extend the approach by incorporating uncertainty through an informative prior for the parameter $\lambda_{max}$. In the absence of prior information about $\lambda_{max}$, it may seem tempting to use our model to try to estimate $\lambda_{max}$ from the data. We do not believe that such an approach would be viable as estimating the parameters of the Gompertz state-space model is already challenging without this extra parameter, and there being little information about $\lambda_{max}$ in the data.
+
+An alternative approach to bounding reproductive rates would be to incorporate environmental variation in the carrying capacity of a non-linear model such as a Ricker population model [e.g. @ruokolainen_ecological_2009]. That is, using a model of the form  
+
+$$N_t = N_{t-1} \exp(r(1 - N_t /(K \exp(\epsilon_t))))$$
+
+where $\epsilon_t$ is normally distributed. For this model, growth rates will not exceed $\exp(r)$ and it has been suggested in the context of modelling environmental variation in the carrying capacity but appears to be rarely used in practice. We are not aware of any attempts to use it in a state-space model context or to separate process error from observation error, but if environmental covariates are added to the log-scale of the carrying capacity and biological knowledge is used to inform the value of $r$, we expect it could also serve to improve parameter estimates and predictions in a state-space model framework.
+
+# Acknowledgements
+
+We thank SANParks for kindly sharing the data used in the study. MS acknowledges financial support from the Swedish Research Council (Grant 2013:05204).
+
+
+
+# References
+
+<div id="refs"></div>
+
+\newpage
+
+![_Logistic function  for $\lambda_{max}=1.5$ together with exponential. The dotted line shows their common linearisation at $x=0$._](Figs/logistic_vs_exp_fig.pdf)
+
+![_(a) Amount of dry season rainfall (mm) in the four districts. (b) Animal counts for giraffe and waterbuck in the four districts._](Figs/counts_and_rain_fig.pdf)
+
+![__(a)__ Marginal posterior densities of observation error s.d. ($s$, top frame) and process error s.d. ($\sigma$, bottom frame) for the two models when applied to the waterbuck data. __(b)__ Posterior joint densities for $(s,\sigma)$ for the exponential rate model (top frame) and the logistic rate model (bottom frame)._](Figs/sd_fig.pdf)
+
+
+
+![_Posterior median Central district population index for the waterbuck __(a)__ and giraffe __(b)__ together with 50 and 90 percent credible intervals for exponential rate model (left frame) and logistic rate model (right frame). Actual counts superimposed in black._](Figs/waterbuck_giraffe_central_fig.pdf)
+
+
+![_Posterior distributions of the rate of increase of the total waterbuck population from 1984-1985  ($\lambda_{1985}$) and from 1985-1986 ($\lambda_{1986}$)._](Figs/waterbuck_rates_fig.pdf)
+
+
+![_Posterior median and interquartile range of the rate of increase of waterbuck, starting at an average level and as a function of dry-season rainfall for exponential and logistic rate models. Superimposed at the bottom is a histogram of observed dry season rainfall, all years and districts._](Figs/rate_vs_rain_fig.pdf)
+
+![_Posterior predictive waterbuck median abundance together with 50 and 90% credible intervals. In __(a)__ corresponding to the high precipitation scenario observed in 1981-1987 and in __(b)__ corresponding to the low precipitation scenario observed in 1988-1984._](Figs/high_low_prec_fig.pdf)
+
