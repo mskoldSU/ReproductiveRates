@@ -6,17 +6,21 @@ census <- read_tsv("data/judithk.815.1-815.1")
 dryrain <- read_csv("data/dryrain.csv", 
                     col_names = c("year", "South", "Central", "North", "FarNorth"),
                     skip = 1)
+# Filenames for MCMC output
+waterbuck.mcmc <- "mcmc/Waterbuck.Rdata"
+giraffe.mcmc <- "mcmc/Giraffe.Rdata"
 
-waterbuck.mcmc <- "mcmc/Waterbuck2017-01-20.Rdata"
-giraffe.mcmc <- "mcmc/Giraffe2017-01-20.Rdata"
-zebra.mcmc <- "mcmc/Zebra2017-01-19.Rdata"
-kudu.mcmc <- "mcmc/Kudu2017-01-20.Rdata"
-wildebeest.mcmc <- "mcmc/Blue Wildebeest2017-01-19.Rdata"
-sable.mcmc <- "mcmc/Sable2017-01-20.Rdata"
-impala.mcmc <- "mcmc/Impala2017-01-20.Rdata"
-
+# Fig width and height
 w <- 7
 h <- 7
+
+# Waterbuck mean level
+ybar.waterbuck <- census %>% 
+    filter(Species == "Waterbuck", year > 1976, year < 1998) %>% 
+    select(South, Central, North, FarNorth) %>%
+    log %>% 
+    unlist %>% 
+    mean(., na.rm = TRUE)
 
 ##
 ## Compares logistic and exponential functions for lambda = 1.5
@@ -84,11 +88,11 @@ ggsave("Figs/counts_and_rain_fig.pdf", counts_and_rain_fig, width = w, height = 
 
 load(waterbuck.mcmc)
 
-plot.data <- bind_rows(data.frame(s = out_exp$sig.err[, , 2],
-                                  sigma = out_exp$sig.pro[, , 2],
+plot.data <- bind_rows(data.frame(s = out_exp$s[, , 2],
+                                  sigma = out_exp$sigma[, , 2],
                                   model = "exponential"),
-                       data.frame(s = out_log$sig.err[, , 2],
-                                  sigma = out_log$sig.pro[, , 2],
+                       data.frame(s = out_log$s[, , 2],
+                                  sigma = out_log$sigma[, , 2],
                                   model = "logistic"))
 rm(out_log, out_exp)
 # Joint posterior density
@@ -243,31 +247,32 @@ ggsave("Figs/waterbuck_rates_fig.pdf", waterbuck_rates_fig, width = w, height = 
 ## Posterior rate of increase as function of rainfall
 ##
 
-process.noise <- function(mcmc.out, rain){
-    # Simulates the process part of the population model at equilibrium 
-    # (i.e. without density dependence)
+process.noise <- function(mcmc.out, rain, ybar){
+    # Simulates the process part of the population model starting from an average population level
+    # 
     #
     # args:
-    #   mcmc.out:   A JAGS object containing draws of parameters b0,b2,sig.pro
+    #   mcmc.out:   A JAGS object containing draws of parameters b0,b1,b2,sigma
     #   rain:   rain covariate
     #
     # Returns matrix of process noise
     N <- length(mcmc.out$b0[1, , 1])
-    e <- t(outer(out_exp$b0[1, , 1], rain^0) +
-               outer(out_exp$b2[1, , 1], rain) +
-               outer(out_exp$sig.pro[1, , 1] * rnorm(N), rain^0))
+    e <- t(outer(mcmc.out$b0[1, , 1], rain^0) +
+               outer(mcmc.out$b1[1, , 1], ybar * rain^0) +
+               outer(mcmc.out$b2[1, , 1], rain) +
+               outer(mcmc.out$sigma[1, , 1] * rnorm(N), rain^0))
     return(e)
 }
 rain <- 0:300 # Range of rainfall values
 load(waterbuck.mcmc)
 
 rate_vs_rain_fig <- bind_rows(
-    logist(process.noise(out_log, rain), lambda = 1.5) %>% 
+    logist(process.noise(out_log, rain, ybar.waterbuck), lambda = 1.5) %>% 
         apply(., 1, quantile, probs = c(0.25, 0.5, 0.75)) %>% 
         t %>% 
         as.data.frame %>% 
         mutate(model = "logistic", rain = rain),
-    exp(process.noise(out_exp, rain)) %>% 
+    exp(process.noise(out_exp, rain, ybar.waterbuck)) %>% 
         apply(., 1, quantile, probs = c(0.25, 0.5, 0.75)) %>% 
         t %>% 
         as.data.frame %>% 
@@ -293,15 +298,15 @@ ggsave("Figs/rate_vs_rain_fig.pdf", rate_vs_rain_fig, width = w, height = h)
 ## Waterbuck prediction, high/low precipitation
 ##
 
-predict.Central.Waterbuck <- function(mcmc.out, T, rain, logybar, link, ...){ 
+predict.Central.Waterbuck <- function(mcmc.out, T, rain, ybar, link, ...){ 
     # Predicts Central district Waterbuck population
     #
     # args: 
     #   mcmc.out: A JAGS object containing draws of parameters 
-    #      logN,b0,b2,sig.pro
+    #      logN,b0,b2,sigma
     #   T: number of timesteps to be predicted
     #   rain: dry season rainfall
-    #   logybar: mean log population size used in MCMC
+    #   ybar: mean log population size used in MCMC
     #   link: exponential or logistic
     n.sim <- dim(mcmc.out$logN)[3]
     Npred <- matrix(ncol = n.sim, nrow = T)
@@ -309,23 +314,18 @@ predict.Central.Waterbuck <- function(mcmc.out, T, rain, logybar, link, ...){
     b0 <- mcmc.out$b0[, , 1]
     b1 <- mcmc.out$b1[, , 1]
     b2 <- mcmc.out$b2[, , 1]
-    sig.pro <- mcmc.out$sig.pro[, , 1]
+    sigma <- mcmc.out$sigma[, , 1]
     for (i in 2:T){
-        e<-rnorm(n.sim, 0, sd = sig.pro)
+        e<-rnorm(n.sim, 0, sd = sigma)
         Npred[i,] <- Npred[i-1, ] * 
-            link(b1 * (log(Npred[i-1, ]) - logybar) + b0 + b2 * rain[i] + e)
+            link(b1 * log(Npred[i-1, ]) + b0 + b2 * rain[i] + e)
     }
     return(Npred)
 }
 
 load(waterbuck.mcmc)
 
-logybar <- census %>% 
-    filter(Species == "Waterbuck", year > 1976, year < 1998) %>% 
-    select(South, Central, North, FarNorth) %>%
-    log %>% 
-    unlist %>% 
-    mean(., na.rm = TRUE)
+
 
 high_rain <- dryrain %>% 
     filter(year %in% 1981:1987) %>% # Period of high precipitation
@@ -338,12 +338,12 @@ low_rain <- dryrain %>%
 logist1.5 <- function(x) logist(x, lambda = 1.5)
 
 high_prec_fig <- bind_rows(
-    predict.Central.Waterbuck(out_log, 7, high_rain, logybar, logist1.5) %>% 
+    predict.Central.Waterbuck(out_log, 7, high_rain, ybar.waterbuck, logist1.5) %>% 
         apply(., 1, quantile, probs = c(.05, .25,.5 , .75, .95)) %>% 
         t %>% 
         as.data.frame %>% 
         mutate(year = 1996:2002, model = "logistic"),
-    predict.Central.Waterbuck(out_exp, 7, high_rain, logybar, exp) %>% 
+    predict.Central.Waterbuck(out_exp, 7, high_rain, ybar.waterbuck, exp) %>% 
         apply(., 1, quantile, probs = c(.05, .25,.5 , .75, .95)) %>% 
         t %>% 
         as.data.frame %>% 
@@ -358,12 +358,12 @@ high_prec_fig <- bind_rows(
 
 
 low_prec_fig <- bind_rows(
-    predict.Central.Waterbuck(out_log, 7, low_rain, logybar, logist1.5) %>% 
+    predict.Central.Waterbuck(out_log, 7, low_rain, ybar.waterbuck, logist1.5) %>% 
         apply(., 1, quantile, probs = c(.05, .25,.5 , .75, .95)) %>% 
         t %>% 
         as.data.frame %>% 
         mutate(year = 1996:2002, model = "logistic"),
-    predict.Central.Waterbuck(out_exp, 7, low_rain, logybar, exp) %>% 
+    predict.Central.Waterbuck(out_exp, 7, low_rain, ybar.waterbuck, exp) %>% 
         apply(., 1, quantile, probs = c(.05, .25,.5 , .75, .95)) %>% 
         t %>% 
         as.data.frame %>% 

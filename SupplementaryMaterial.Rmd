@@ -10,7 +10,7 @@ header-includes:
 - \usepackage{lineno}
 - \linenumbers
 csl: mee.csl
-bibliography: MS Bounded rmax.bib
+bibliography: MS_Bounded_rmax.bib
 ---
 
 
@@ -24,59 +24,59 @@ knitr::opts_chunk$set(fig.path='Figs/',
 
 In order to improve mixing of the MCMC algorithm, we used a reparametrized model updating $\tilde{\beta}=(\tilde{\beta}_0, \tilde{\beta}_1, \tilde{\beta}_2)=(\beta_0+\beta_1\bar{y}, \beta_1, \beta_2)$, where $\bar{y}$ is the mean log-count for the species under study. All parameters are given vague priors; $\tilde{\beta}=(\tilde{\beta}_0, \tilde{\beta}_1, \tilde{\beta}_2)$ are apriori independent $N(0,10^6)$ and scale parameters $\sigma$ and $s$ are assumed apriori uniformly distributed on $(0,1000)$.
 
-Samples from the posterior distributions was simulated using JAGS 4.2.0 called from R [@r_development_core_team_r:_2016] using rjags [@plummer_rjags:_2016]. Figures were based on $10^{10}$ iterations subsampled at every 1000 values. All code is available at https://github.com/mskoldSU/ReproductiveRates 
+Samples from the posterior distributions was simulated using JAGS 4.2.0 called from R [@r_development_core_team_r:_2016] using rjags [@plummer_rjags:_2016]. Figures were based on $10^{10}$ iterations subsampled at every 1000 values and with a burn-in period of 10000. All code is available at https://github.com/mskoldSU/ReproductiveRates 
 
 # Posterior distributions for all species
 
 Here we provide parameter posterior densities and posterior district abundance for the waterbuck (*Kobus ellipsiprymnus*), giraffe (*Giraffa camelopardalis*), Burchell’s zebra (*Equus burchelli*), greater kudu (*Tragelaphus strepsiceros*), blue wildebeest (*Connochaetes taurinus*), impala (*Aepyceros melampus*) and sable antelope (*Hippotragus niger*).
 
 
-![_Waterbuck posterior densities for parameters and deviance._](Figs/waterbuck_par_fig.pdf)
+![_Waterbuck posterior densities for parameters and deviance._](Figs_supp/waterbuck_par_fig.pdf)
 
 
-![_Posterior median waterbuck abundance together with 50 and 90% credible intervals._](Figs/waterbuck_pop_fig.pdf)
-
-
-
-![_Giraffe posterior densities for parameters and deviance._](Figs/giraffe_par_fig.pdf)
-
-
-![_Posterior median giraffe abundance together with 50 and 90% credible intervals._](Figs/giraffe_pop_fig.pdf)
+![_Posterior median waterbuck abundance together with 50 and 90% credible intervals._](Figs_supp/waterbuck_pop_fig.pdf)
 
 
 
-
-![_Burchell's zebra posterior densities for parameters and deviance._](Figs/zebra_par_fig.pdf)
-
-
-![_Posterior median  Burchell's zebra abundance together with 50 and 90% credible intervals._](Figs/zebra_pop_fig.pdf)
+![_Giraffe posterior densities for parameters and deviance._](Figs_supp/giraffe_par_fig.pdf)
 
 
-
-![_Greater kudu posterior densities for parameters and deviance._](Figs/kudu_par_fig.pdf)
-
-
-![_Posterior median greater kudu abundance together with 50 and 90% credible intervals._](Figs/kudu_pop_fig.pdf)
+![_Posterior median giraffe abundance together with 50 and 90% credible intervals._](Figs_supp/giraffe_pop_fig.pdf)
 
 
 
-![_Blue wildebeest posterior densities for parameters and deviance._](Figs/wildebeest_par_fig.pdf)
+
+![_Burchell's zebra posterior densities for parameters and deviance._](Figs_supp/zebra_par_fig.pdf)
 
 
-![_Posterior median blue wildebeest abundance together with 50 and 90% credible intervals._](Figs/wildebeest_pop_fig.pdf)
-
-
-
-![_Impala posterior densities for parameters and deviance._](Figs/impala_par_fig.pdf)
-
-
-![_Posterior median impala abundance together with 50 and 90% credible intervals._](Figs/impala_pop_fig.pdf)
+![_Posterior median  Burchell's zebra abundance together with 50 and 90% credible intervals._](Figs_supp/zebra_pop_fig.pdf)
 
 
 
-![_Sable antelope posterior densities for parameters and deviance._](Figs/sable_par_fig.pdf)
+![_Greater kudu posterior densities for parameters and deviance._](Figs_supp/kudu_par_fig.pdf)
 
 
-![_Posterior median sable antelope abundance together with 50 and 90% credible intervals._](Figs/sable_pop_fig.pdf)
+![_Posterior median greater kudu abundance together with 50 and 90% credible intervals._](Figs_supp/kudu_pop_fig.pdf)
+
+
+
+![_Blue wildebeest posterior densities for parameters and deviance._](Figs_supp/wildebeest_par_fig.pdf)
+
+
+![_Posterior median blue wildebeest abundance together with 50 and 90% credible intervals._](Figs_supp/wildebeest_pop_fig.pdf)
+
+
+
+![_Impala posterior densities for parameters and deviance._](Figs_supp/impala_par_fig.pdf)
+
+
+![_Posterior median impala abundance together with 50 and 90% credible intervals._](Figs_supp/impala_pop_fig.pdf)
+
+
+
+![_Sable antelope posterior densities for parameters and deviance._](Figs_supp/sable_par_fig.pdf)
+
+
+![_Posterior median sable antelope abundance together with 50 and 90% credible intervals._](Figs_supp/sable_pop_fig.pdf)
 
 # References

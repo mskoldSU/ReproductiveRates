@@ -1,20 +1,32 @@
-waterbuck.mcmc <- "mcmc/Waterbuck2017-01-20.Rdata"
-giraffe.mcmc <- "mcmc/Giraffe2017-01-20.Rdata"
-zebra.mcmc <- "mcmc/Zebra2017-01-19.Rdata"
-kudu.mcmc <- "mcmc/Kudu2017-01-20.Rdata"
-wildebeest.mcmc <- "mcmc/Blue Wildebeest2017-01-19.Rdata"
-sable.mcmc <- "mcmc/Sable2017-01-20.Rdata"
-impala.mcmc <- "mcmc/Impala2017-01-20.Rdata"
-source("load.R")
+library(tidyverse)
+library(cowplot)
+## url <- "http://dataknp.sanparks.org/sanparks/metacat?action=read&qformat=sanparks&sessionid=0&docid=judithk.815.1"
+## census <- read_tsv(url)
+census <- read_tsv("data/judithk.815.1-815.1")
+dryrain <- read_csv("data/dryrain.csv", 
+                    col_names = c("year", "South", "Central", "North", "FarNorth"),
+                    skip = 1)
+
+# Fig width and height
 w <- 7
 h <- 7
+
+# Filenames for MCMC output
+
+waterbuck.mcmc <- "mcmc/Waterbuck.Rdata"
+giraffe.mcmc <- "mcmc/Giraffe.Rdata"
+zebra.mcmc <- "mcmc/Zebra.Rdata"
+kudu.mcmc <- "mcmc/Kudu.Rdata"
+wildebeest.mcmc <- "mcmc/Blue Wildebeest.Rdata"
+sable.mcmc <- "mcmc/Sable.Rdata"
+impala.mcmc <- "mcmc/Impala.Rdata"
 
 ##
 ## Parameter posterior plots
 ##
 
-plot.pars <- function(mcmc.file, species, pars = c("b0", "b1", "b2", "sig.err", "sig.pro"), 
-                      labels = c("beta[0]", "beta[1]", "beta[2]", "sigma", "s")){
+plot.pars <- function(mcmc.file, species, pars = c("b0", "b1", "b2", "s", "sigma"), 
+                      labels = c("beta[0]", "beta[1]", "beta[2]", "s", "sigma")){
     load(mcmc.file)
     plotlist <- list()
     N <- length(out_exp[[pars[1]]])
@@ -39,18 +51,45 @@ plot.pars <- function(mcmc.file, species, pars = c("b0", "b1", "b2", "sig.err", 
     plot_grid(title, p, ncol=1, rel_heights=c(0.1, 1))
 }
 
-ggsave("Figs/waterbuck_par_fig.pdf",plot.pars(waterbuck.mcmc, "Waterbuck") , width = w, height = h)
-ggsave("Figs/giraffe_par_fig.pdf",plot.pars(giraffe.mcmc, "Giraffe") , width = w, height = h)
-ggsave("Figs/wildebeest_par_fig.pdf",plot.pars(wildebeest.mcmc, "Blue Wildebeest") , width = w, height = h)
-ggsave("Figs/zebra_par_fig.pdf",plot.pars(zebra.mcmc, "Burchell's zebra") , width = w, height = h)
-ggsave("Figs/impala_par_fig.pdf",plot.pars(impala.mcmc, "Impala") , width = w, height = h)
-ggsave("Figs/kudu_par_fig.pdf",plot.pars(kudu.mcmc, "Greater kudu") , width = w, height = h)
-ggsave("Figs/sable_par_fig.pdf",plot.pars(sable.mcmc, "Sable antelope") , width = w, height = h)
+ggsave("Figs_supp/waterbuck_par_fig.pdf",plot.pars(waterbuck.mcmc, "Waterbuck") , width = w, height = h)
+ggsave("Figs_supp/giraffe_par_fig.pdf",plot.pars(giraffe.mcmc, "Giraffe") , width = w, height = h)
+ggsave("Figs_supp/wildebeest_par_fig.pdf",plot.pars(wildebeest.mcmc, "Blue Wildebeest") , width = w, height = h)
+ggsave("Figs_supp/zebra_par_fig.pdf",plot.pars(zebra.mcmc, "Burchell's zebra") , width = w, height = h)
+ggsave("Figs_supp/impala_par_fig.pdf",plot.pars(impala.mcmc, "Impala") , width = w, height = h)
+ggsave("Figs_supp/kudu_par_fig.pdf",plot.pars(kudu.mcmc, "Greater kudu") , width = w, height = h)
+ggsave("Figs_supp/sable_par_fig.pdf",plot.pars(sable.mcmc, "Sable antelope") , width = w, height = h)
 
 
 ##
 ## Population posterior plots
 ##
+
+pop.quantiles <- function(N, quantiles, years = 1977:1997, chain = 1){
+    # Computes a data.frame of posterior quantiles from simulations of a 
+    # population process
+    #
+    # args:
+    #   N:  a t*d*n*c array, where t is the length of the process, d number of districts, n number of 
+    #       simulations and c number of chains
+    #   quantiles: a vector of quantiles to be computed (more than one)
+    # returns:
+    #   A data-frame with a column for each quantile and a row for each process step
+    # 
+    district.names <- c("South", "Central", "North", "FarNorth")
+    qN <- t(apply(N[, 1, , chain], 1, quantile, probs = quantiles, na.rm = TRUE)) %>% 
+        as.data.frame() %>% 
+        setNames(paste("q", quantiles, sep = "")) %>% 
+        mutate(year = years, district = district.names[1])
+    for (i in 2:4){
+        qN <-rbind(qN,
+                   t(apply(N[, i, , chain], 1, quantile, probs = quantiles, na.rm = TRUE)) %>% 
+                       as.data.frame %>% 
+                       setNames(paste("q", quantiles, sep = "")) %>% 
+                       mutate(year = years, district = district.names[i]))
+    }
+    return(qN)
+}
+
 
 plot.pop <- function(mcmc.file, name, census){
     load(mcmc.file)
@@ -80,10 +119,10 @@ plot.pop <- function(mcmc.file, name, census){
     
 }
 
-ggsave("Figs/waterbuck_pop_fig.pdf",plot.pop(waterbuck.mcmc, "Waterbuck", census) , width = w, height = h)
-ggsave("Figs/giraffe_pop_fig.pdf",plot.pop(giraffe.mcmc, "Giraffe", census) , width = w, height = h)
-ggsave("Figs/wildebeest_pop_fig.pdf",plot.pop(wildebeest.mcmc, "Blue Wildebeest", census) , width = w, height = h)
-ggsave("Figs/zebra_pop_fig.pdf",plot.pop(zebra.mcmc, "Zebra", census) , width = w, height = h)
-ggsave("Figs/impala_pop_fig.pdf",plot.pop(impala.mcmc, "Impala", census) , width = w, height = h)
-ggsave("Figs/kudu_pop_fig.pdf",plot.pop(kudu.mcmc, "Kudu", census) , width = w, height = h)
-ggsave("Figs/sable_pop_fig.pdf",plot.pop(sable.mcmc, "Sable", census) , width = w, height = h)
+ggsave("Figs_supp/waterbuck_pop_fig.pdf",plot.pop(waterbuck.mcmc, "Waterbuck", census) , width = w, height = h)
+ggsave("Figs_supp/giraffe_pop_fig.pdf",plot.pop(giraffe.mcmc, "Giraffe", census) , width = w, height = h)
+ggsave("Figs_supp/wildebeest_pop_fig.pdf",plot.pop(wildebeest.mcmc, "Blue Wildebeest", census) , width = w, height = h)
+ggsave("Figs_supp/zebra_pop_fig.pdf",plot.pop(zebra.mcmc, "Zebra", census) , width = w, height = h)
+ggsave("Figs_supp/impala_pop_fig.pdf",plot.pop(impala.mcmc, "Impala", census) , width = w, height = h)
+ggsave("Figs_supp/kudu_pop_fig.pdf",plot.pop(kudu.mcmc, "Kudu", census) , width = w, height = h)
+ggsave("Figs_supp/sable_pop_fig.pdf",plot.pop(sable.mcmc, "Sable", census) , width = w, height = h)
