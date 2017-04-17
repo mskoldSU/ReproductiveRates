@@ -11,7 +11,7 @@ header-includes:
 - \usepackage{lineno}
 - \linenumbers
 csl: mee.csl
-bibliography: MS Bounded rmax.bib
+bibliography: MS_Bounded_rmax.bib
 ---
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,include = FALSE}
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
