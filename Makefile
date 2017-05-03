@@ -5,17 +5,17 @@ MCMC := mcmc/Waterbuck.Rdata mcmc/Giraffe.Rdata mcmc/Impala.Rdata mcmc/Kudu.Rdat
 
 all: $(MCMC) $(FIGS) $(FIGS.SUPP) ReproductiveRates.pdf SupplementaryMaterial.pdf
 
-$(MCMC): mcmc_all.R $(DATA)
+$(MCMC): mcmc_all.R load_data.R $(DATA)
 	Rscript --no-save $<
 	
-$(FIGS): figures_main.R $(MCMC) $(DATA)
+$(FIGS): figures_main.R load_data.R $(MCMC) $(DATA)
 	Rscript --no-save $<
 
-$(FIGS.SUPP): figures_supp.R $(MCMC) $(DATA)
+$(FIGS.SUPP): figures_supp.R load_data.R $(MCMC) $(DATA)
 	Rscript --no-save $<
 	
-ReproductiveRates.pdf: ReproductiveRates.Rmd mcmc_all.R figures_main.R mcmc/Waterbuck.Rdata $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
+ReproductiveRates.pdf: ReproductiveRates.Rmd mcmc_all.R load_data.R figures_main.R mcmc/Waterbuck.Rdata $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
 	Rscript --no-save -e 'rmarkdown::render("$<")'
 
-SupplementaryMaterial.pdf: SupplementaryMaterial.Rmd mcmc_all.R figures_supp.R $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
+SupplementaryMaterial.pdf: SupplementaryMaterial.Rmd mcmc_all.R load_data.R figures_supp.R $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
 	Rscript --no-save -e 'rmarkdown::render("$<")'

@@ -2,13 +2,9 @@
 
 set.seed(1)
 library(rjags)
-library(tidyverse)
+source("load_data.R")
 
-census <- read_tsv("data/judithk.815.1-815.1")
-dryrain <- read_csv("data/dryrain.csv", 
-                    col_names = c("year", "South", "Central", "North", "FarNorth"),
-                    skip = 1)
-
+# JAGS model code
 exponential.model <- "model
 {
 # Likelihood
@@ -17,7 +13,7 @@ for (i in 1:4){
     logN[start.idx[i], i] <- y[start.idx[i], i]
     for (t in (start.idx[i] + 1):end.idx[i]){
         y[t, i] ~ dnorm(logN[t, i], tau.err)
-        logN[t, i] <- logN[t - 1, i]+e[t, i]
+        logN[t, i] <- logN[t - 1, i] + e[t, i]
         e[t, i] ~ dnorm(b0.tilde + b1 * (logN[t - 1, i] - y.bar) + b2 * rain[t - 1, i], tau.pro)
     }
 }
@@ -32,6 +28,7 @@ tau.pro <- 1 / (sigma * sigma) # Process noise precision
 sigma ~ dunif(0, 1000)
 }"
 
+# JAGS model code
 logistic.model <- "model
 {
 # Likelihood
@@ -40,7 +37,7 @@ for (i in 1:4){
     logN[start.idx[i], i] <- y[start.idx[i], i]
     for (t in (start.idx[i] + 1):end.idx[i]){
         y[t, i] ~ dnorm(logN[t, i], tau.err)
-        logN[t, i] <- logN[t - 1, i] + log(r) - log(exp(-r * e[t,i] / (r - 1)) * (r - 1) + 1)
+        logN[t, i] <- logN[t - 1, i] + log(lambda) - log(exp(-lambda * e[t,i] / (lambda - 1)) * (lambda - 1) + 1)
         e[t,i] ~ dnorm(b0.tilde + b1 * (logN[t - 1, i] - y.bar) + b2 * rain[t - 1,i], tau.pro)
     }
 }
@@ -72,14 +69,17 @@ for (species in c("Blue Wildebeest", "Zebra", "Impala", "Giraffe", "Kudu", "Wate
         filter(Species == species, year > 1976, year < 1998) %>% 
         select(South, Central, North, FarNorth) %>%
         log()
-    start.idx <- apply(y, 2, function(x){min(which(!is.na(x)))})
-    end.idx <- apply(y, 2, function(x){max(which(!is.na(x)))})
-    jags.data <- list(y = y, 
-                      rain = rain, 
-                      start.idx = start.idx, 
-                      end.idx = end.idx,
-                      r = 1.5,
-                      y.bar = mean(unlist(y), na.rm = TRUE))
+    
+    # JAGS data
+    jags.data <- list(y = y, # log-population count
+                      rain = rain, # dry-season rainfall, all districts 1977-1997
+                      start.idx = apply(y, 2, function(x){min(which(!is.na(x)))}), # year of first observed value
+                      
+                      end.idx = apply(y, 2, function(x){max(which(!is.na(x)))}), #year of last observed value
+                      lambda = 1.5, #  maximal reproductive rate (lambda_max, only used in logistic model)
+                      y.bar = mean(unlist(y), na.rm = TRUE)) # average observed log-count
+    
+    # Construct model objects and run burn-in period
     jags_exp <- jags.model("exponential.jag",
                            data = jags.data, 
                            n.chains = 2, n.adapt = 10000)
@@ -89,9 +89,13 @@ for (species in c("Blue Wildebeest", "Zebra", "Impala", "Giraffe", "Kudu", "Wate
                            n.chains = 2, n.adapt = 10000)
     update(jags_log, 1000000)
     
+    # Parameters to monitor
     par <- c("b0", "b1", "b2", "logN", "s", "sigma")
+    
+    # Main MCMC
     out_exp <- jags.samples(jags_exp, par, N, thin = thin)
     out_log <- jags.samples(jags_log, par, N, thin = thin)
+    
     save(out_log, out_exp, file = paste("mcmc/", species,".Rdata", sep = ""))
 }
 

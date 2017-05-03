@@ -18,7 +18,17 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE, eval = TRUE)
 ```
 
-*Abstract*: Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. We conclude that our model can provide more realistic predictions and greater robustness against outlying environmental covariates than traditional log-linear models. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise for slow life histories,  or more generally, when the rate of sampling is high compared to reproductive rates. This separation is a key challenge in state-space modelling of population time series. 
+*Abstract*: 
+
+1. Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. 
+
+2. We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. 
+
+3. Our results confirm that log-normal rates of increase may 
+
+
+
+We conclude that our model can provide more realistic predictions and greater robustness against outlying environmental covariates than traditional log-linear models. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise for slow life histories,  or more generally, when the rate of sampling is high compared to reproductive rates. This separation is a key challenge in state-space modelling of population time series. 
 
 \newpage
 
@@ -64,7 +74,11 @@ The logistic function, $\text{logistic}(x)=L/(\exp(-b(x-a))+1)$, is the sigmoid 
 $$
 N_t=N_{t-1}\text{logistic}(\beta v_t+\epsilon_t),\quad t=1,\ldots,T,\quad (2)
 $$
-where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. In order for the parameters $\beta$ and $\sigma^2$  to be comparable with those of the exponential model, we set $L=\lambda_{max}$ and fix location and scale of the logistic function at $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$. This choice ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, see Figure 1 for the case $\lambda_{max}=1.5$. It also ensures that the carrying capacities of the two models are the same.
+where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. In order for the parameters $\beta$ and $\sigma^2$  to be comparable with those of the exponential model, we parametrise the logistic function as
+$$
+\text{logistic}(x)=\lambda_{max}/(1 + (\lambda_{max}-1)\exp(-\lambda_{max}x/(\lambda_{max}-1))).\quad (3)
+$$
+This choice ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, and corresponds to setting $L=\lambda_{max}$ and fixing location and scale at $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$, see Figure 1 for the case $\lambda_{max}=1.5$. It also ensures that the carrying capacities of the two models are the same.
 
 
 *Figure 1 here*
@@ -75,7 +89,7 @@ where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2
 It is clear from Figure 1 that within a range of a 15% rise or decline, which should cover all but the most extreme fluctuations for most populations, the rate-functions are very similar when $\lambda_{max} = 1.5$.
 As $\lambda_{max}$ increases, the logistic function parameterized as above will approach the exponential function so that the Gompertz model is recovered in the limit of model (2) when the remaining parameters are held fixed.
 
-In the following, we will refer to model (1) as the _exponential_ rate model and model (2), with the logistic function parameterized as $\text{logistic}(x)=\lambda_{max}/(1 + (\lambda_{max}-1)\exp(-\lambda_{max}x/(\lambda_{max}-1)))$, as the _logistic_ rate model.
+In the following, we will refer to model (1) as the _exponential_ rate model and model (2), with the logistic function parameterized as in (3), as the _logistic_ rate model.
 
 
 
@@ -114,9 +128,9 @@ $$
     \text{logistic}(\beta v_{it}+\epsilon_{it})&\text{ for the proposed logistic rate model,}
 \end{cases}
 $$
-where $v_{it}=(1,\log(N_{i(t-1)}),z_{it})^T$ with $z_{it}$ denoting dry season rainfall in region $i$ year $t$, $\epsilon_{it}\sim N(0,\sigma^2)$ independently over indices and finally $\text{logistic}(x)=\lambda_{max}/(\exp(-\lambda_{max}x/(\lambda_{max}-1))/(\lambda_{max}-1)+1)$ given a known upper bound $\lambda_{max}$ on the reproductive rate of the species. Parameters are given vague prior distributions, see Supplementary material. As a further simplification, we start each population process at it's first observed value, $N_{it_{i0}}=y_{it_{i0}}$.
+where $v_{it}=(1,\log(N_{i(t-1)}),z_{it})^T$ with $z_{it}$ denoting dry season rainfall in region $i$ year $t$, $\epsilon_{it}\sim N(0,\sigma^2)$ independently over indices and finally the logistic function parametrised as in (3) given a known upper bound $\lambda_{max}$ on the reproductive rate of the species. All parameters are given vague prior distributions, see Supplementary material. As a further simplification, we start each population process at it's first observed value, $N_{it_{i0}}=y_{it_{i0}}$.
 
-Since we are mainly interested in comparing the exponential and logistic rate models, we have kept the remaining model details as simple as possible while still including a continuous covariate represented by dry season rainfall. @mansson_time_2007 consider the same model structure as our exponential rate model, but with a wider range of covariates and higher order time lags of density dependence. Also @ogutu_enso_2003 try a wider range of covariates, but they only model park totals and their model do not include a measurement error.
+Since we are mainly interested in comparing the exponential and logistic rate models, we have kept the remaining model details as simple as possible while still including a continuous covariate represented by dry season rainfall. @mansson_time_2007 consider the same model structure as our exponential rate model, but with a wider range of covariates and higher order time lags of density dependence. Also @ogutu_enso_2003 try a wider range of covariates, but they only model park totals and their models do not include a measurement error.
 
 ### Bounds on reproductive rates
 
@@ -208,5 +222,5 @@ We thank SANParks for kindly sharing the data used in the study. We acknowledge 
 
 ![_Posterior median and interquartile range of the rate of increase of waterbuck, starting at an average level and as a function of dry-season rainfall for exponential and logistic rate models. Superimposed at the bottom is a histogram of observed dry season rainfall, all years and districts._](Figs/rate_vs_rain_fig.pdf)
 
-![_Posterior predictive waterbuck median abundance together with 50 and 90% credible intervals. In __(a)__ corresponding to the high precipitation scenario observed in 1981-1987 and in __(b)__ corresponding to the low precipitation scenario observed in 1988-1984._](Figs/high_low_prec_fig.pdf)
+![_Posterior predictive waterbuck median abundance together with 50 and 90% credible intervals. In __(a)__ corresponding to the high precipitation scenario observed in 1981-1987 and in __(b)__ corresponding to the low precipitation scenario observed in 1988-1994._](Figs/high_low_prec_fig.pdf)
 

@@ -1,11 +1,6 @@
-library(tidyverse)
 library(cowplot)
-## url <- "http://dataknp.sanparks.org/sanparks/metacat?action=read&qformat=sanparks&sessionid=0&docid=judithk.815.1"
-## census <- read_tsv(url)
-census <- read_tsv("data/judithk.815.1-815.1")
-dryrain <- read_csv("data/dryrain.csv", 
-                    col_names = c("year", "South", "Central", "North", "FarNorth"),
-                    skip = 1)
+source("load_data.R")
+
 # Filenames for MCMC output
 waterbuck.mcmc <- "mcmc/Waterbuck.Rdata"
 giraffe.mcmc <- "mcmc/Giraffe.Rdata"
@@ -23,11 +18,12 @@ ybar.waterbuck <- census %>%
     mean(., na.rm = TRUE)
 
 ##
-## Compares logistic and exponential functions for lambda = 1.5
+## FIGURE: Compares logistic and exponential functions for lambda = 1.5
 ##
 
 ilogit <- function(x){1 / (1 + exp(-x))}
 
+# logistic function as parametrised in equation (3)
 logist <- function(x, lambda){lambda * ilogit(x * lambda / (lambda - 1) - log(lambda - 1))}
 
 logistic_vs_exp_fig <- ggplot(data.frame(x = c(log(0.5), log(2))), aes(x)) +
@@ -47,7 +43,7 @@ ggsave("Figs/logistic_vs_exp_fig.pdf", logistic_vs_exp_fig, width = w, height = 
 rm(logistic_vs_exp_fig)
 
 ##
-## Population counts and dry season rainfall
+## FIGURE: Population counts and dry season rainfall
 ##
 
 animal_counts_fig <- census %>% 
@@ -83,7 +79,7 @@ counts_and_rain_fig <- plot_grid(rainfall_fig, animal_counts_fig,
 ggsave("Figs/counts_and_rain_fig.pdf", counts_and_rain_fig, width = w, height = h)
 
 ##
-## Plot posterior distribution of variance parameters for Waterbuck data
+## FIGURE: posterior distribution of process and observation standard deviations for Waterbuck data
 ##
 
 load(waterbuck.mcmc)
@@ -128,7 +124,7 @@ sd_fig <- plot_grid(sd_marginal_fig, sd_joint_fig,
 ggsave("Figs/sd_fig.pdf", sd_fig, width = w, height = h)
 
 ##
-## Waterbuck and Giraffe Central district plots
+## FIGURE: Waterbuck and Giraffe Central district population index plots
 ##
 
 pop.quantiles <- function(N, quantiles, years = 1977:1997, chain = 1){
@@ -216,7 +212,7 @@ waterbuck_giraffe_central_fig <- plot_grid(waterbuck_central_fig,
 ggsave("Figs/waterbuck_giraffe_central_fig.pdf", waterbuck_giraffe_central_fig, width = w, height = h)
 
 ##
-## Posterior Waterbuck rate of increase years
+## FIGURE: Posterior Waterbuck rate of increase years
 ##
 
 load(waterbuck.mcmc)
@@ -244,7 +240,7 @@ rm(out_exp, out_log)
 ggsave("Figs/waterbuck_rates_fig.pdf", waterbuck_rates_fig, width = w, height = h)
 
 ##
-## Posterior rate of increase as function of rainfall
+## FIGURE: Posterior rate of increase as function of rainfall
 ##
 
 process.noise <- function(mcmc.out, rain, ybar){
@@ -254,6 +250,7 @@ process.noise <- function(mcmc.out, rain, ybar){
     # args:
     #   mcmc.out:   A JAGS object containing draws of parameters b0,b1,b2,sigma
     #   rain:   rain covariate
+    #   ybar: average observed log-population index
     #
     # Returns matrix of process noise
     N <- length(mcmc.out$b0[1, , 1])
@@ -263,6 +260,7 @@ process.noise <- function(mcmc.out, rain, ybar){
                outer(mcmc.out$sigma[1, , 1] * rnorm(N), rain^0))
     return(e)
 }
+
 rain <- 0:300 # Range of rainfall values
 load(waterbuck.mcmc)
 
@@ -295,7 +293,7 @@ rm(rain, out_exp, out_log)
 ggsave("Figs/rate_vs_rain_fig.pdf", rate_vs_rain_fig, width = w, height = h)
 
 ##
-## Waterbuck prediction, high/low precipitation
+## FIGURE: Waterbuck prediction, high/low precipitation
 ##
 
 predict.Central.Waterbuck <- function(mcmc.out, T, rain, ybar, link, ...){ 
