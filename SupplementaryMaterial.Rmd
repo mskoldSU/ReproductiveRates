@@ -1,6 +1,6 @@
 ---
-title: "Supplementary material"
-author: Martin Sköld^[Department of Mathematics, Stockholm university] and Jonas Knape^[Department of Ecology, Swedish University of Agricultural Sciences]
+title: "Supporting Information"
+author: Martin Sköld^[Corresponding author; mskold@math.su.se, Department of Mathematics, Stockholm university, Stockholm, Sweden] and Jonas Knape^[Department of Ecology, Swedish University of Agricultural Sciences, Uppsala, Sweden]
 output:
   pdf_document: default
   html_document: default
@@ -28,7 +28,7 @@ Samples from the posterior distributions was simulated using JAGS 4.2.0 called f
 
 # Posterior distributions for all species
 
-Here we provide parameter posterior densities and posterior district abundance for the waterbuck (*Kobus ellipsiprymnus*), giraffe (*Giraffa camelopardalis*), Burchell’s zebra (*Equus burchelli*), greater kudu (*Tragelaphus strepsiceros*), blue wildebeest (*Connochaetes taurinus*), impala (*Aepyceros melampus*) and sable antelope (*Hippotragus niger*).
+Here we provide parameter posterior densities and posterior region abundance for the waterbuck (*Kobus ellipsiprymnus*), giraffe (*Giraffa camelopardalis*), Burchell’s zebra (*Equus burchelli*), greater kudu (*Tragelaphus strepsiceros*), blue wildebeest (*Connochaetes taurinus*), impala (*Aepyceros melampus*) and sable antelope (*Hippotragus niger*).
 
 
 ![_Waterbuck posterior densities for parameters and deviance._](Figs_supp/waterbuck_par_fig.pdf)
