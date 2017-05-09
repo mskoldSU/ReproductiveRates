@@ -3,7 +3,7 @@ FIGS.SUPP := Figs_supp/giraffe_par_fig.pdf Figs_supp/giraffe_pop_fig.pdf Figs_su
 DATA := $(wildcard data/*)
 MCMC := mcmc/Waterbuck.Rdata mcmc/Giraffe.Rdata mcmc/Impala.Rdata mcmc/Kudu.Rdata mcmc/Sable.Rdata mcmc/Zebra.Rdata
 
-all: $(MCMC) $(FIGS) $(FIGS.SUPP) ReproductiveRates.pdf SupplementaryMaterial.pdf
+all: $(MCMC) $(FIGS) $(FIGS.SUPP) ReproductiveRates.pdf SupportingInformation.pdf
 
 $(MCMC): mcmc_all.R load_data.R $(DATA)
 	Rscript --no-save $<
@@ -17,5 +17,5 @@ $(FIGS.SUPP): figures_supp.R load_data.R $(MCMC) $(DATA)
 ReproductiveRates.pdf: ReproductiveRates.Rmd mcmc_all.R load_data.R figures_main.R mcmc/Waterbuck.Rdata $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
 	Rscript --no-save -e 'rmarkdown::render("$<")'
 
-SupplementaryMaterial.pdf: SupplementaryMaterial.Rmd mcmc_all.R load_data.R figures_supp.R $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
+SupportingInformation.pdf: SupportingInformation.Rmd mcmc_all.R load_data.R figures_supp.R $(FIGS) $(DATA) $(MCMC) MS_Bounded_rmax.bib
 	Rscript --no-save -e 'rmarkdown::render("$<")'
