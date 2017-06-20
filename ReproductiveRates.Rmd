@@ -18,13 +18,13 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 
 *Abstract*: 
 
-1. Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. 
+Time series models applied in the study of animal population dynamics commonly assume linearity on the log-scale, leading to log-normally distributed rates of increase. While this is often computationally convenient, in particular when performing statistical inference in the presence of observation error, it may lead to unrealistic predictions for animals with a limited reproduction. 
 
-2. We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. 
+We introduce a model that includes an explicit bound on the reproductive rate of an individual, and apply this to a population time series of ungulates in Kruger National Park, South Africa. 
 
-3. Due to observational error, the year-to-year increases in animal counts occasionally exceeded the maximal reproductive rate of the animals. In such cases, the traditional unbounded model showed a tendency of over fitting data, leading to unrealistic predictions of the underlying populations increase. An observed increase above the maximal reproductive rate also  provide empirical confirmation that observation error exist. The model with an explicit bound was able to utilize this in order to separate observational error from population process noise which the traditional unbounded model was unable to.
+Due to observational error, the year-to-year increases in animal counts occasionally exceeded the maximal reproductive rate of the animals. In such cases, the traditional unbounded model showed a tendency of over fitting data, leading to unrealistic predictions of the underlying populations increase. An observed increase above the maximal reproductive rate also  provide empirical confirmation that observation error exist. The model with an explicit bound was able to utilize this in order to separate observational error from population process noise which the traditional unbounded model was unable to.
 
-4. We conclude that enforcing a strict upper bound on the reproductive rate of an animal population model may lead to more realistic statistical inference than commonly applied log-linear models when an explicit bound on reproductive rate is known. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise for slow life histories, or more generally, when the rate of sampling is high compared to reproductive rates. 
+We conclude that enforcing a strict upper bound on the reproductive rate of an animal population model may lead to more realistic statistical inference than commonly applied log-linear models when an explicit bound on reproductive rate is known. We further conclude that introducing a bound on reproduction can greatly assist in separating observational error and population process noise for slow life histories, or more generally, when the rate of sampling is high compared to reproductive rates. 
 
 *Keywords*: animal population dynamics, reproductive rate, state space model
 \newpage
