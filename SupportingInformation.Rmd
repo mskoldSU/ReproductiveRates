@@ -12,6 +12,28 @@ header-includes:
 csl: mee.csl
 bibliography: MS_Bounded_rmax.bib
 ---
+```{r, echo = FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(knitr))
+table.pars <- function(mcmc.file, species, pars = c("b0", "b1", "b2", "s", "sigma"), 
+                       labels = c("Model", "$\\beta_0$", "$\\beta_1$", "$\\beta_2$", "$s$", "$\\sigma$")){
+    load(mcmc.file)
+    tab_entry <- function(x){
+        x <- x[1,,1]
+        paste(signif(mean(x), 2), " (", signif(sd(x), 2), ")", sep = "")
+    }
+    exp_pars <- lapply(out_exp[pars], tab_entry) %>% 
+        as.data.frame() %>% 
+        bind_cols(data.frame(model = "exponential"), .)
+    log_pars <- lapply(out_log[pars], tab_entry) %>% 
+        as.data.frame()%>% 
+        bind_cols(data.frame(model = "logistic"), .)
+kable(rbind(exp_pars, log_pars),
+      col.names = labels,
+      caption = paste(species, "parameter posterior means and standard deviations."),
+      escape = FALSE)
+}
+```
 
 
 
@@ -29,6 +51,16 @@ Samples from the posterior distributions was simulated using JAGS 4.2.0 called f
 # Posterior distributions for all species
 
 Here we provide parameter posterior densities and posterior region abundance for the waterbuck (*Kobus ellipsiprymnus*), giraffe (*Giraffa camelopardalis*), Burchell’s zebra (*Equus burchelli*), greater kudu (*Tragelaphus strepsiceros*), blue wildebeest (*Connochaetes taurinus*), impala (*Aepyceros melampus*) and sable antelope (*Hippotragus niger*).
+
+```{r, echo = FALSE}
+table.pars("mcmc/Waterbuck.Rdata", "Waterbuck")
+table.pars("mcmc/Giraffe.Rdata", "Giraffe")
+table.pars("mcmc/Zebra.Rdata", "Burchell's zebra")
+table.pars("mcmc/Blue Wildebeest.Rdata", "Blue wildebeest")
+table.pars("mcmc/Impala.Rdata", "Impala")
+table.pars("mcmc/Sable.Rdata", "Sable")
+```
+
 
 
 ![_Waterbuck posterior densities for parameters and deviance._](Figs_supp/waterbuck_par_fig.pdf)
