@@ -45,7 +45,7 @@ State-space models incorporate both sources of errors and are often used with th
 In practice it is however often difficult to achieve a good separation [@dennis_estimating_2006; @knape_estimability_2008].
 
 For some organisms, such as many large mammals, there can be strong biological information about  to what extent a population can grow during a limited period of time, but this information is rarely used in analyses of data.
-Some previous studies have explored incorporating prior knowledge in the intrinsic growth rate parameter of population models, i.e. the expected mean growth rate on the log-scale when the population is small [@delean_ecologically_2012; @lebreton_detecting_2013], but those models may still predict unrealistic annual growth rates.
+Some previous studies have explored incorporating prior knowledge in the intrinsic growth rate parameter of population models, i.e. the expected mean growth rate on the log-scale when the population is small [@delean_ecologically_2012; @lebreton_detecting_2013], but those models may still predict unrealistic annual growth rates. 
 Here, we suggest a simple modification of the Gompertz state-space model that makes use of biological information to place a bound on annual realized growth rates rather than on the intrinsic growth rate.
 The effect of bounding growth rates on forecasts and parameter estimates, and specifically on the separation between process and observation error, are demonstrated in applications to data on ungulate populations in the Kruger national park [@redfern_biases_2002].
 
@@ -69,13 +69,13 @@ Upper limits are difficult to implement for a model like (1), and ignoring them 
 
 The logistic function, $\text{logistic}(x)=L/(\exp(-b(x-a))+1)$, is the sigmoid function decreasing to zero as $x$ approaches $-\infty$ and increasing to  $L$ as $x$ approaches $\infty$. Here, the parameter $b>0$ controls the steepness of the curve and $a$ the location of its midpoint. Its use in this paper resembles the way it is used in statistics, in particular _logistic regression_, as a means of transforming the effect of a linear combination of covariates to a bounded interval. This should not be confused with its rather different and traditional appearance in population ecology through Verhulst's _logistic model of population growth_. In Verhulst's model, it forms a bound on a population's _size_ through carrying capacity $L=K$. Our aim is instead to implement a bound $L=\lambda_{max}$ on the population's _reproductive rate_. In agreement with (1) we do so by simply replacing the exponential with the logistic, 
 $$
-N_t=N_{t-1}\text{logistic}(\beta v_t+\epsilon_t),\quad t=1,\ldots,T,\quad (2)
+N_t=N_{t-1}\text{logistic}(\beta v_t+\epsilon_t)=N_{t-1}\lambda_t,\quad t=1,\ldots,T,\quad (2)
 $$
-where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. In order for the parameters $\beta$ and $\sigma^2$  to be comparable with those of the exponential model, we parametrize the logistic function as
+where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. Since our main aim in this paper is to compare the models defined in (1) and (2), we use a particular parametrisation of the logistic function in (2). Rather than the standard choice of $a=0$ and $b=1$, leading to $\text{logit}(\lambda_t/\lambda_{max})=\beta v_t+\epsilon_t$, we set $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$. This parametrisation ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, making parameters $\beta$ and $\sigma^2$ comparable across models. It also ensures that the carrying capacities of the two models are the same. When refering to the logistic function in this paper, we hence refer to the version defined by
+
 $$
 \text{logistic}(x)=\lambda_{max}/(1 + (\lambda_{max}-1)\exp(-\lambda_{max}x/(\lambda_{max}-1))).\quad (3)
 $$
-This choice ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, and corresponds to setting $L=\lambda_{max}$ and fixing location and scale at $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$, see Figure 1 for the case $\lambda_{max}=1.5$. It also ensures that the carrying capacities of the two models are the same.
 
 
 *Figure 1 here*
@@ -84,7 +84,7 @@ This choice ensures that the exponential and logistic functions have the same va
 
 
 It is clear from Figure 1 that within a range of a 15% rise or decline, which should cover all but the most extreme fluctuations for most populations, the rate-functions are very similar when $\lambda_{max} = 1.5$.
-As $\lambda_{max}$ increases, the logistic function parameterized as above will approach the exponential function so that the Gompertz model is recovered in the limit of model (2) when the remaining parameters are held fixed.
+As $\lambda_{max}$ increases, the logistic function parameterized as in (3) will approach the exponential function so that the Gompertz model is recovered in the limit of model (2) when the remaining parameters are held fixed.
 
 In the following, we will refer to model (1) as the _exponential_ rate model and model (2), with the logistic function parameterized as in (3), as the _logistic_ rate model.
 
@@ -136,7 +136,7 @@ A true upper bound on reproduction depend, among other factors, on proportion of
 
 ## Results
 
-Posterior densities for all species and parameters are available in the Supporting information, we here focus on our key findings.
+Posterior densities for all species and parameters are available in the Supporting information, we here focus on our key findings. In general, with the exception of $\sigma$ and $s$, posterior parameter distributions were very similar across models.
 
 ### Separating process noise and observation error
 
