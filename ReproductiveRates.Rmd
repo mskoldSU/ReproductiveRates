@@ -45,7 +45,7 @@ State-space models incorporate both sources of errors and are often used with th
 In practice it is however often difficult to achieve a good separation [@dennis_estimating_2006; @knape_estimability_2008].
 
 For some organisms, such as many large mammals, there can be strong biological information about  to what extent a population can grow during a limited period of time, but this information is rarely used in analyses of data.
-Some previous studies have explored incorporating prior knowledge in the intrinsic growth rate parameter of population models, i.e. the expected mean growth rate on the log-scale when the population is small [@delean_ecologically_2012; @lebreton_detecting_2013], but those models may still predict unrealistic annual growth rates. 
+Some previous studies have explored incorporating prior knowledge in the intrinsic growth rate parameter of population models, i.e. the expected mean growth rate on the log-scale when the population is small [@delean_ecologically_2012; @lebreton_detecting_2013], but those models may still predict unrealistic annual growth rates.
 Here, we suggest a simple modification of the Gompertz state-space model that makes use of biological information to place a bound on annual realized growth rates rather than on the intrinsic growth rate.
 The effect of bounding growth rates on forecasts and parameter estimates, and specifically on the separation between process and observation error, are demonstrated in applications to data on ungulate populations in the Kruger national park [@redfern_biases_2002].
 
@@ -54,10 +54,10 @@ The effect of bounding growth rates on forecasts and parameter estimates, and sp
 A state-space model has two components. A model for the hidden state, in our context an index of the unobserved population abundance, and a model for the observation process. Denoting abundance at time $t$ by $N_t$, a popular model in discrete time is the stochastic Gompertz model. Here 
 
 $$
-N_t=N_{t-1}\exp(\beta v_t+\epsilon_t),\quad t=1,\ldots,T,\quad (1)
+N_t=N_{t-1}\exp(\beta_0+\beta_1\log(N_{t-1})+\beta_2 z_t +\epsilon_t),\quad t=1,\ldots,T,\quad (1)
 $$
 
-where the row-vector $v_t=(1,\log(N_{t-1}),z_t)'$ contains a possibly vector-valued process $z_t$ of environmental variables, a vector of parameters $\beta=(\beta_0,\ldots,\beta_{d})$ and Gaussian noise $\epsilon_t$ with zero mean and variance $\sigma^2$. On the log-scale, $X_t=\log N_t$ then follows an autoregressive model with covariates (ARMAX).
+for a process $z_t$ of environmental variables and Gaussian noise $\epsilon_t$ with zero mean and variance $\sigma^2$. On the log-scale, $X_t=\log N_t$ then follows an autoregressive model with covariates (ARMAX).
 
 Since we can rarely monitor $N_t$ directly, it is commonly assumed that the sampling method results in an index $Y_t$, often the logarithm of animal counts, related to log-abundance as $Y_t=X_t+e_t$ through a Gaussian sampling error $e_t$ with mean zero and variance $s^2$. 
 
@@ -69,9 +69,9 @@ Upper limits are difficult to implement for a model like (1), and ignoring them 
 
 The logistic function, $\text{logistic}(x)=L/(\exp(-b(x-a))+1)$, is the sigmoid function decreasing to zero as $x$ approaches $-\infty$ and increasing to  $L$ as $x$ approaches $\infty$. Here, the parameter $b>0$ controls the steepness of the curve and $a$ the location of its midpoint. Its use in this paper resembles the way it is used in statistics, in particular _logistic regression_, as a means of transforming the effect of a linear combination of covariates to a bounded interval. This should not be confused with its rather different and traditional appearance in population ecology through Verhulst's _logistic model of population growth_. In Verhulst's model, it forms a bound on a population's _size_ through carrying capacity $L=K$. Our aim is instead to implement a bound $L=\lambda_{max}$ on the population's _reproductive rate_. In agreement with (1) we do so by simply replacing the exponential with the logistic, 
 $$
-N_t=N_{t-1}\text{logistic}(\beta v_t+\epsilon_t)=N_{t-1}\lambda_t,\quad t=1,\ldots,T,\quad (2)
+N_t=N_{t-1}\text{logistic}(\beta_0+\beta_1\log(N_{t-1})+\beta_2 z_t +\epsilon_t)=N_{t-1}\lambda_t,\quad t=1,\ldots,T,\quad (2)
 $$
-where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. Since our main aim in this paper is to compare the models defined in (1) and (2), we use a particular parametrisation of the logistic function in (2). Rather than the standard choice of $a=0$ and $b=1$, leading to $\text{logit}(\lambda_t/\lambda_{max})=\beta v_t+\epsilon_t$, we set $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$. This parametrisation ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, making parameters $\beta$ and $\sigma^2$ comparable across models. It also ensures that the carrying capacities of the two models are the same. When refering to the logistic function in this paper, we hence refer to the version defined by
+where $\epsilon_t$ is again Gaussian noise with zero mean and variance $\sigma^2$. Since our main aim in this paper is to compare the models defined in (1) and (2), we use a particular parametrisation of the logistic function in (2). Rather than the standard choice of $a=0$ and $b=1$, leading to $\text{logit}(\lambda_t/\lambda_{max})=\beta_0+\beta_1\log(N_{t-1})+\beta_2 z_t +\epsilon_t$, we set $a=\log(\lambda_{max}-1)/b$ and $b=\lambda_{max}/(\lambda_{max}-1)$. This parametrisation ensures that the exponential and logistic functions have the same value and first derivative at $x=0$, making parameters $(\beta_0, \beta_1, \beta_2, \sigma^2)$ comparable across models. It also ensures that the carrying capacities of the two models are the same. When refering to the logistic function in this paper, we hence refer to the version defined by
 
 $$
 \text{logistic}(x)=\lambda_{max}/(1 + (\lambda_{max}-1)\exp(-\lambda_{max}x/(\lambda_{max}-1))).\quad (3)
@@ -109,7 +109,7 @@ Regional census totals are shown in Figure 2 together with dry season rainfall. 
 
 An advantage of modelling the reproductive rate using an exponential function is that $X_t=\log(N_t)$ follows a Gaussian auto-regressive process which allows the use of standard tools, e.g.\ the Kalman filter, for computing the likelihood. We choose instead to follow a Bayesian approach, fitting the models using Markov chain Monte Carlo (MCMC) methods implemented in JAGS [@plummer_jags:_2003] run through the package rjags [@plummer_rjags:_2016] within the R computing environment [@r_development_core_team_r:_2016].  The Bayesian approach has the advantage of, given a suitable choice of prior parameter distributions, providing a unified way of presenting probabilistic measures of uncertainty through posterior distributions. This serves our purpose well, since our main aim is to illustrate how the use of an explicit upper bound on rates of increase can influence uncertainty about other parts of the process. 
 
-We model populations  at the regional level, where  different species develop independently of each other conditionally on the environmental variable. For a particular species, we further assume independence across regions conditionally on the values of species specific parameters $(\beta,\sigma,s)$.  In summary, if we denote the log-count of a given species in region $i$ at time $t$ by $y_{it}$, we assume that
+We model populations  at the regional level, where  different species develop independently of each other conditionally on the environmental variable. For a particular species, we further assume independence across regions conditionally on the values of species specific parameters $(\beta_0, \beta_1, \beta_2,\sigma,s)$.  In summary, if we denote the log-count of a given species in region $i$ at time $t$ by $y_{it}$, we assume that
 
 $$
 y_{it}=\log(N_{it})+e_{it},
@@ -121,11 +121,11 @@ $$
 Further,
 $$
 \lambda_{it}=\begin{cases}
-    \exp(\beta v_{it}+\epsilon_{it})&\text{ for the Gomperz or exponential rate model}\\
-    \text{logistic}(\beta v_{it}+\epsilon_{it})&\text{ for the proposed logistic rate model,}
+    \exp(\beta_0+\beta_1\log(N_{i(t-1)})+\beta_2 z_{it} +\epsilon_{it})&\text{ for the Gomperz or exponential rate model}\\
+    \text{logistic}(\beta_0+\beta_1\log(N_{i(t-1)})+\beta_2 z_{it} +\epsilon_{it})&\text{ for the proposed logistic rate model,}
 \end{cases}
 $$
-where $v_{it}=(1,\log(N_{i(t-1)}),z_{it})^T$ with $z_{it}$ denoting dry season rainfall in region $i$ year $t$, $\epsilon_{it}\sim N(0,\sigma^2)$ independently over indices and finally the logistic function parametrized as in (3) given a known upper bound $\lambda_{max}$ on the reproductive rate of the species. All parameters are given vague prior distributions, see Supporting information. As a further simplification, we start each population process at its first observed value, $N_{it_{i0}}=y_{it_{i0}}$.
+with $z_{it}$ denoting dry season rainfall in region $i$ year $t$, $\epsilon_{it}\sim N(0,\sigma^2)$ independently over indices and finally the logistic function parametrized as in (3) given a known upper bound $\lambda_{max}$ on the reproductive rate of the species. All parameters are given vague prior distributions, see Supporting information. As a further simplification, we start each population process at its first observed value, $N_{it_{i0}}=y_{it_{i0}}$.
 
 Since we are mainly interested in comparing the exponential and logistic rate models, we have kept the remaining model details as simple as possible while still including a continuous covariate represented by dry season rainfall. @mansson_time_2007 consider the same model structure as our exponential rate model, but with a wider range of covariates and higher order time lags of density dependence. Also @ogutu_enso_2003 try a wider range of covariates, but they only model park totals and their models do not include a measurement error.
 
@@ -167,7 +167,7 @@ Figure 6 shows the posterior distribution of the rate function $\lambda$ as a fu
 
 ### Prediction
 
-Predicting future population sizes is one of the main applications of time-series models in ecology. Failure to take upper bounds on reproduction into account may lead to overly optimistic predictions. We illustrate this issue for the waterbuck population using historical rainfall data for a low- and a high-precipitation scenario. In Figure 7 (a) we have assumed rainfall following the last year of the census to be identical to what was observed in 1981-1987, which corresponds to high precipitation. Not surprisingly, the exponential rate model gives much wider prediction intervals and puts larger posterior probability masses on high population increases. For the low-precipitation scenario corresponding to historical data from 1988-1994, the difference is smaller in Figure 7 (b).
+Predicting future population sizes is one of the main applications of time-series models in ecology. Failure to take upper bounds on reproduction into account may lead to overly optimistic predictions. We illustrate this issue for the waterbuck population using historical rainfall data for a low- and a high-precipitation scenario. In Figure 7 (a) we have assumed rainfall following the last year of the census to be identical to what was observed in 1981-1987, which corresponds to high precipitation. Not surprisingly, the exponential rate model gives much wider prediction intervals and puts larger posterior probability masses on high population increases. For the low-precipitation scenario corresponding to historical data from 1988-1994, the difference is smaller in Figure 7 (b). Note that predictions may still lead to unrealistically high population densities due to e.g. ignoring a regulation mechanism affecting the population at high levels. In such cases, our bound on the rate of increase can be combined with a bound on population density as in @staples_2006_impact. 
 
 
 *Figure 7 here*
